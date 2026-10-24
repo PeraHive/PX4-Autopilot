@@ -52,7 +52,6 @@
                 "**/CVS": true,
                 "**/.DS_Store": true,
                 "**/Thumbs.db": true,
-                "build": true,
                 ".devcontainer": true,
                 ".dockerignore": true,
                 ".editorconfig": true,
@@ -60,10 +59,6 @@
                 ".gitmodules": true,
                 "CITATION.cff": true,
                 "codecov.yml": true,
-                "CODE_OF_CONDUCT.md": true,
-                "CONTRIBUTING.md": true,
-                "SECURITY.md": true,
-                "SECURITY_SCOPE.md": true,
                 "package.xml": true
         },
         "githubPullRequests.defaultMergeMethod": "squash",
