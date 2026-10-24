@@ -43,8 +43,29 @@
         "files.watcherExclude": {
                 "**/build/**": true
         },
-        "git.detectSubmodulesLimit": 25,
+        "git.detectSubmodules": false,
         "git.ignoreLimitWarning": true,
+        "files.exclude": {
+                "**/.git": true,
+                "**/.svn": true,
+                "**/.hg": true,
+                "**/CVS": true,
+                "**/.DS_Store": true,
+                "**/Thumbs.db": true,
+                "build": true,
+                ".devcontainer": true,
+                ".dockerignore": true,
+                ".editorconfig": true,
+                ".gitattributes": true,
+                ".gitmodules": true,
+                "CITATION.cff": true,
+                "codecov.yml": true,
+                "CODE_OF_CONDUCT.md": true,
+                "CONTRIBUTING.md": true,
+                "SECURITY.md": true,
+                "SECURITY_SCOPE.md": true,
+                "package.xml": true
+        },
         "githubPullRequests.defaultMergeMethod": "squash",
         "githubPullRequests.telemetry.enabled": false,
         "files.associations": {
@@ -129,4 +150,5 @@
         "yaml.schemas": {
                 "${workspaceFolder}/validation/module_schema.yaml": "${workspaceFolder}/src/modules/*/module.yaml"
         },
+        "terminal.integrated.stickyScroll.enabled": false,
 }
