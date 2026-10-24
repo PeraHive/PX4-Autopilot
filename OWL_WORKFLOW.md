@@ -1,85 +1,66 @@
 # OWL (Omnidirectional Wi-Fi Localization) — Workflow & Contribution Guide
 
-This guide explains the branch strategy, development workflow, and upstreaming process for the OWL project on top of PX4-Autopilot.
+This guide aligns your local research workflow with the official [PX4 Contribution Guidelines](CONTRIBUTING.md). It outlines how to conduct active research on your fork without polluting PR branches, and how to prepare submissions that pass PX4 CI and review standards.
 
 ---
 
-## 1. Repository & Branch Architecture
+## 1. Architecture Overview
 
 ```
-upstream (PX4/PX4-Autopilot)
+upstream (PX4/PX4-Autopilot:main)
    │
    ▼  git fetch upstream && git merge --ff-only upstream/main
  origin/main (PeraHive/PX4-Autopilot:main)
    │
    ├──> owl_dev (Active Research & Development Branch)
-   │       ├── Experimental commits & tests
-   │       ├── Local research notes, thesis logs, scripts
-   │       └── Pushed to origin/owl_dev (backed up on GitHub)
+   │       ├── Algorithm implementation & experiments
+   │       ├── Research logs, thesis notes, sandbox scripts
+   │       └── Backed up to origin/owl_dev
    │
    ▼  (When ready to contribute upstream)
-feature/owl-localization (Fresh branch off upstream/main)
+feature/owl-localization (Clean feature branch off fresh upstream/main)
    │
-   ├── Pull ONLY production C++ code & configs from owl_dev
-   ├── Clean conventional commits (e.g., feat(estimator): ...)
-   └── PR to PX4/PX4-Autopilot:main
+   ├── Cherry-pick/checkout ONLY production C++ code & configs from owl_dev
+   ├── Passes code formatting (`make check_format`) & tests (`make tests`)
+   ├── Conventional commit: type(scope): description + Assisted-by trailer (if AI-assisted)
+   └── Pull Request targeting PX4/PX4-Autopilot:main
 ```
 
 ### Configured Remotes
-
-* **`origin`**: `git@github.com:PeraHive/PX4-Autopilot.git` (Your fork)
+* **`origin`**: `git@github.com:PeraHive/PX4-Autopilot.git` (Your GitHub fork)
 * **`upstream`**: `https://github.com/PX4/PX4-Autopilot.git` (Official PX4 repository)
 
 ---
 
-## 2. Daily Development Workflow (`owl_dev`)
+## 2. Daily Research Workflow (`owl_dev`)
 
-### Step 1: Work on `owl_dev`
-
-Always ensure you are working on the `owl_dev` branch:
-
+### Step 1: Switch to `owl_dev`
 ```bash
 git checkout owl_dev
 ```
 
-### Step 2: Commit Freely
-
-You can commit your estimation code, research notes, and test scripts here:
-
+### Step 2: Develop and Commit Freely
+In `owl_dev`, you can commit research artifacts, test scripts, and work-in-progress code:
 ```bash
 git add src/modules/owl_localization/
-git commit -m "feat(owl): initial estimator implementation"
+git commit -m "feat(owl): initial Wi-Fi localization module"
 
-# Research notes or scripts can also be committed on owl_dev:
-git add OWL_NOTES.md
-git commit -m "docs: add RSSI triangulation notes"
+git add OWL_RESEARCH_NOTES.md
+git commit -m "docs: add triangulation and ranging observations"
 ```
 
-
-* `feat`: (new feature for the user, not a new feature for build script)
-* `fix`: (bug fix for the user, not a fix to a build script)
-* `docs`: (changes to the documentation)
-* `style`: (formatting, missing semi colons, etc; no production code change)
-* `refactor`: (refactoring production code, eg. renaming a variable)
-* `test`: (adding missing tests, refactoring tests; no production code change)
-* `chore`: (updating grunt tasks etc; no production code change)
-
-### Step 3: Push to Your Fork for Backup
-
-Keep your fork in sync so your work is safe:
-
+### Step 3: Back Up to Your Fork
 ```bash
 git push origin owl_dev
 ```
 
 ---
 
-## 3. Keeping Up to Date with Upstream PX4
+## 3. Keeping in Sync with Upstream PX4
 
-Do this periodically (e.g., weekly or when you need new PX4 features or bug fixes):
+Perform this routine periodically to incorporate upstream bug fixes and improvements:
 
-### Step 1: Update your local `main`
-
+### Step 1: Update local `main`
 ```bash
 git checkout main
 git fetch upstream
@@ -88,74 +69,125 @@ git push origin main
 ```
 
 ### Step 2: Rebase `owl_dev` onto `main`
-
 ```bash
 git checkout owl_dev
 git rebase main
 git submodule update --init --recursive
 ```
-
-*(If you have already pushed `owl_dev` to GitHub before rebasing, update your remote branch with `git push origin owl_dev --force-with-lease`)*.
+*(If you have already pushed `owl_dev` to GitHub prior to rebasing, update your remote branch using `git push origin owl_dev --force-with-lease`)*.
 
 ---
 
-## 4. Preparing a Clean Pull Request to PX4 Upstream
+## 4. Contributing Upstream (Strictly Aligned with CONTRIBUTING.md)
 
-When your localization algorithm is ready to contribute to official PX4:
+When your localization code is validated and ready for submission to `PX4/PX4-Autopilot`:
 
-### Step 1: Ensure `main` is fresh
-
+### Step 1: Sync `main`
 ```bash
 git checkout main
 git fetch upstream
 git merge --ff-only upstream/main
 ```
 
-### Step 2: Create a fresh feature branch off `main`
-
+### Step 2: Create a Feature Branch
+As required by PX4 guidelines, always branch directly off fresh `main`:
 ```bash
 git checkout -b feature/owl-localization main
 ```
 
-### Step 3: Bring **only** the production code from `owl_dev`
-
-Do **not** merge `owl_dev` directly. Instead, check out only your module and config files:
-
+### Step 3: Extract Only Production Code from `owl_dev`
+Do **not** merge `owl_dev` directly. Check out only the production module files and necessary configs:
 ```bash
-# Pull only the module files:
+# Extract the production module:
 git checkout owl_dev -- src/modules/owl_localization/
 
-# Pull board configuration or uORB message changes if any:
-# git checkout owl_dev -- msg/owl_status.msg
+# If uORB topics or board configs were added/modified:
+# git checkout owl_dev -- msg/vehicle_odometry.msg
+# git checkout owl_dev -- boards/px4/sitl/default.px4board
 ```
+*Note: Personal research notes, raw flight logs, and scratch Python scripts in `owl_dev` remain isolated and will not enter this branch.*
 
-*Notice: Any research notes (`OWL_NOTES.md`), scratch scripts, or logs in `owl_dev` will stay behind and NOT touch this branch.*
+---
 
-### Step 4: Run PX4 Style & Format Checks
+## 5. PX4 Quality, Formatting & Testing Standards
 
-PX4 CI requires code formatting compliance:
+Before committing to your PR branch, verify that all PX4 CI requirements are met:
 
+### A. Code Style & Formatting
+PX4 enforces code formatting via astyle. CI will reject PRs with formatting violations.
 ```bash
+# Format C/C++ code automatically:
 make format
-git diff --stat
+
+# Or check if any formatting discrepancies exist:
+make check_format
 ```
 
-### Step 5: Commit with PX4 Conventional Commit Format
+### B. Unit & Integration Testing
+Per PX4 contribution policy:
+* **Unit Tests**: Add tests under `src/modules/owl_localization/test/` if applicable, and verify:
+  ```bash
+  make tests
+  ```
+* **SITL Verification**: Test localization in SITL:
+  ```bash
+  make px4_sitl gz_x500       # Multicopter
+  # or
+  make px4_sitl gz_r1_rover   # Rover
+  ```
+* **Flight / Simulation Logs**: Upload generated `.ulg` logs to [Flight Review](https://logs.px4.io) to include in your PR description as verification evidence.
 
-Format: `type(scope): description`
+---
 
+## 6. Commit Message & PR Rules
+
+PX4 strictly enforces [Conventional Commits](https://www.conventionalcommits.org/) and PR title conventions.
+
+### Format
+```text
+type(scope): description
+
+Optional body explaining rationale, math, and architecture.
+
+Assisted-by: Model:version (Required only if AI tools were used)
+```
+
+### Valid Types & Scopes
+* **Allowed Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+* **Applicable Scopes**:
+  * `ekf2` (if integrating directly into EKF2)
+  * `estimator` or `owl_localization` (if adding a standalone module)
+  * `simulation` (if updating SITL/Gazebo models)
+  * `uorb` (if introducing new uORB topics)
+
+### Example Production Commit:
 ```bash
 git add src/modules/owl_localization/
-git commit -m "feat(estimator): add omnidirectional wifi localization module"
+git commit -m "feat(estimator): add omnidirectional wifi localization module
+
+Implements multilateration state estimation for UAVs and rovers
+using omnidirectional Wi-Fi signal ranging.
+
+Assisted-by: Gemini:gemini-3.8-flash"
 ```
 
-### Step 6: Push and Open PR
+---
 
+## 7. Submitting & Managing the PR
+
+### Step 1: Push Branch to Your Fork
 ```bash
 git push -u origin feature/owl-localization
 ```
 
-Then visit GitHub to open a Pull Request targeting:
+### Step 2: Open Pull Request
+Open the PR on GitHub:
+* **Base repository**: `PX4/PX4-Autopilot` | **Base branch**: `main`
+* **Head repository**: `PeraHive/PX4-Autopilot` | **Compare**: `feature/owl-localization`
+* **PR Title**: Must follow `type(scope): description` (e.g., `feat(estimator): add omnidirectional wifi localization module`).
+* **PR Description**: Include background, implementation details, SITL/test results, and a link to your [Flight Review](https://logs.px4.io) log.
 
-* **Base repository**: `PX4/PX4-Autopilot` (branch: `main`)
-* **Head repository**: `PeraHive/PX4-Autopilot` (branch: `feature/owl-localization`)
+### Step 3: Addressing Review Feedback
+Per PX4 policy, once review has begun:
+* Address review feedback by adding **new commits** on `feature/owl-localization`.
+* Do **not** amend, squash, or force-push during active review unless explicitly requested for rebasing on `main`.
