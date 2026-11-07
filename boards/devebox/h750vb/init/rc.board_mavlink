@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# DevEBox H750VB board specific MAVLink startup script.
+#------------------------------------------------------------------------------
+
+# Start MAVLink on the USB CDC/ACM serial port
+mavlink start -d /dev/ttyACM0
